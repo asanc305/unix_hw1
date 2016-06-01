@@ -6,22 +6,33 @@ basic ()
   hostname       
 
   #print linux version
-  echo "Linux vesion" cat /etc/issue    
+  echo "Linux vesion: $(cat /etc/issue)"    
 
   #print architecture
-  uname -a | awk '{print $12}'  
+  echo "Architecture: $(lscpu | grep Architecture | awk '{print $2}')"  
 
   #print username and id
   echo "User: $USER (ID $(id -u))"
 
-  #print number of users
-  cat /etc/passwd | wc -l
-
   #print number of processes
-  ps -e | wc -l
+  echo "Processes: $(ps -e | wc -l)"
 
-  
-  
+  #print number of users
+  echo "Users: $(cat /etc/passwd | wc -l)"
+
+  #print number of cores
+  echo "Cores: $(lscpu | grep "Core(s)" | awk '{print $4}')"
+
+  #print total memory
+  echo "Total Memory: $(cat /proc/meminfo | grep MemTotal | awk '{print $2}') KB"
+
+  #print installed packages
+  echo "Installed Packages: $(dpkg --get-selections | grep -v deinstall | wc -l)"
+
+  #print IP addresses
+  A=$(ifconfig | grep "inet addr" | awk '{print $2}')
+  echo "$A"
+
 }
 
 if [ $# == 0 ]; then
