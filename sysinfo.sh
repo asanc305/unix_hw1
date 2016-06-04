@@ -3,7 +3,7 @@
 basic ()
 {
   #print hostname
-  hostname       
+  echo "Hostname: $(hostname)"       
 
   #print linux version
   echo "Linux vesion: $(cat /etc/issue)"    
@@ -31,14 +31,39 @@ basic ()
 
   #print IP addresses
   A=$(ifconfig | grep "inet addr" | awk '{print $2}')
-  echo "$A"
+  ADDRESS=""
+  for i in $A;
+  do
+    B=$(echo "$i" | awk -F":" '{print $2}')
 
+    if [ $B != "127.0.0.1" ]; then
+      ADDRESS+=" $B"
+    fi
+  done
+  echo "Internet addresses:$ADDRESS"
+
+}
+
+disk () 
+{
+  DIRECTORIES=$(cat /etc/passwd | awk -F":" '{print $6}')
+  #echo $DIRECTORIES
+  C=""
+  for I in $DIRECTORIES;
+  do
+    if [ -a $I ]; then
+      C+=" $(du -sh --block-size=10 $I 2> /tmp/error) \n"
+    fi
+  done
+  D=$(echo "$C" | sort -k1 -n)
+  echo $D
+  
 }
 
 if [ $# == 0 ]; then
   basic
 elif [ $1 == "-d" ]; then 
-  echo "option 1"
+  disk
 elif [ $1 == "-h" ]; then
   echo "option 2"
 else
