@@ -46,18 +46,30 @@ basic ()
 
 disk () 
 {
-  DIRECTORIES=$(cat /etc/passwd | awk -F":" '{print $6}')
-  #echo $DIRECTORIES
-  C=""
+  #cat /etc/passwd | awk -F":" '{print $6}' | du -sh --block-size=10 2> /tmp/error
+  > /tmp/out
+  DIRECTORIES=$(cat /etc/passwd | awk -F":" '{print $1} {print $6}')
+  echo $DIRECTORIES
+  
+  #du -sh --block-size=10 $DIRECTORIES 2> /tmp/error #| sort -k1 -n
   for I in $DIRECTORIES;
   do
     if [ -a $I ]; then
-      C+=" $(du -sh --block-size=10 $I 2> /tmp/error) \n"
+      du -sh --block-size=10 $I >> /tmp/out 2> /tmp/error
     fi
   done
-  D=$(echo "$C" | sort -k1 -n)
-  echo $D
-  
+
+  TMP=$(sort -k1 -n /tmp/out)
+  COUNT=0
+
+  for I in $TMP;
+  do
+    echo $I
+    #if [ $COUNT -lt 3 ]; then
+      #echo $I
+      #COUNT+=1
+    #fi
+  done  
 }
 
 if [ $# == 0 ]; then
