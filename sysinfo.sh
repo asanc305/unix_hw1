@@ -10,7 +10,7 @@ basic ()
 
   #print architecture
   echo "Architecture: $(lscpu | grep Architecture | awk '{print $2}')"  
-
+-+
   #print username and id
   echo "User: $USER (ID $(id -u))"
 
@@ -46,12 +46,10 @@ basic ()
 
 disk () 
 {
-  #cat /etc/passwd | awk -F":" '{print $6}' | du -sh --block-size=10 2> /tmp/error
   > /tmp/out
-  DIRECTORIES=$(cat /etc/passwd | awk -F":" '{print $1} {print $6}')
-  echo $DIRECTORIES
-  
-  #du -sh --block-size=10 $DIRECTORIES 2> /tmp/error #| sort -k1 -n
+  echo "Disk usage:"
+  DIRECTORIES=$(cat /etc/passwd | awk -F":" '{print $6}')
+
   for I in $DIRECTORIES;
   do
     if [ -a $I ]; then
@@ -59,27 +57,40 @@ disk ()
     fi
   done
 
-  TMP=$(sort -k1 -n /tmp/out)
+  C=$(sort -k1 -nr /tmp/out | awk '{print $2}')
+  D=$(cat /etc/passwd)
   COUNT=0
-
-  for I in $TMP;
+  for I in $C;
   do
-    echo $I
-    #if [ $COUNT -lt 3 ]; then
-      #echo $I
-      #COUNT+=1
-    #fi
-  done  
+    for J in $D;
+    do
+      E=$(echo "$J" | awk -F":" '{print $6}')
+      if [ "$E" == "$I" ] && [ $COUNT -lt 3 ]; then
+        USER=$(echo "$J" | awk -F":" '{print $1}')
+        LOCATION=$(echo "$J" | awk -F":" '{print $6}')
+        SIZE=$(du -sh --block-size=10 $LOCATION 2> /tmp/error | awk '{print $1}')
+        
+        echo "$USER $SIZE $LOCATION"
+        ((COUNT+=1))
+      fi
+    done  
+  done
 }
 
-if [ $# == 0 ]; then
-  basic
-elif [ $1 == "-d" ]; then 
-  disk
-elif [ $1 == "-h" ]; then
-  echo "option 2"
+if [ $(id -u) -eq 0 ]; then
+  if [ $# == 0 ]; then
+    basic
+  elif [ $1 == "-d" ] || [ $1 == "--disk-usage" ]; then 
+    basic
+    disk
+  elif [ $1 == "-h" ] || [ $! == "--help" ]; then
+    echo "Prints system information. Must be run as root"
+    echo "usage: ./sysinfo [--help] [--disk-usage]" 
+  else
+    echo "check param"
+  fi  
 else
-  echo "check param"
-fi  
+  echo "Not root user"
+fi
 
 
