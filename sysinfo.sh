@@ -10,7 +10,7 @@ basic ()
 
   #print architecture
   echo "Architecture: $(lscpu | grep Architecture | awk '{print $2}')"  
--+
+
   #print username and id
   echo "User: $USER (ID $(id -u))"
 
@@ -92,5 +92,6 @@ if [ $(id -u) -eq 0 ]; then
 else
   echo "Not root user"
 fi
+
 
 
